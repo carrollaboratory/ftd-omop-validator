@@ -9,7 +9,7 @@ version_file = "ftd-omop-validator/_version.py"
 name = "ftd-omop-validator"
 
 description = "Unified API Interface for ontology search APIs."
-readme = "README.md"
+readme = "src/README.md"
 requires-python = "3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
