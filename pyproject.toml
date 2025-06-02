@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools"] #, "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+#[tool.setuptools_scm]
+version_file = "ftd-omop-validator/_version.py"
+
+[project]
+name = "ftd-omop-validator"
+
+description = "Unified API Interface for ontology search APIs."
+readme = "README.md"
+requires-python = "3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [numpy>=1.21,<2.0
+                pandas==2.0.3
+                cchardet==2.1.7]
+
+dynamic = ["version"]
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
