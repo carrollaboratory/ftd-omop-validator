@@ -796,6 +796,9 @@ def process_file(file_path, restrict=None) -> dict:
         with fs.open(file_path, 'r', encoding='utf-8') as f:
             result = run_checks(file_path, f, restrict=restrict)
     else:
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
         with file_path.open('r', encoding='utf-8') as f:
             result = run_checks(file_path, f, restrict=restrict)
 
