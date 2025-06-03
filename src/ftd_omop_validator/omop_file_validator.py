@@ -96,7 +96,7 @@ def get_cdm_table_columns(table_name):
     :return dict: Deserialized dictionary of the table columns
     """
     # allow files to be found regardless of CaSe
-    file = os.path.join(settings.cdm_metadata_path,
+    file = os.path.join(cdm_metadata_path,
                         table_name.lower() + '.json')
     if os.path.isfile(file):
         with open(file, 'r', encoding='utf-8') as f:
@@ -848,7 +848,7 @@ def _check_columns(cdm_column_names, csv_columns, result, line_number=None):
 
 def generate_pretty_html(html_output_file_name):
     lines = []
-    with open(settings.html_boilerplate, 'r') as f:
+    with open(html_boilerplate, 'r') as f:
         lines.extend(f.readlines())
     lines.append('<table id="dataframe" style="width:80%" class="center">\n')
     with open(html_output_file_name, 'r') as f:
