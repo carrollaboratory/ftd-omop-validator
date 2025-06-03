@@ -13,6 +13,7 @@ import collections
 import re
 from pathlib import Path
 import argparse
+import gcsfs
 
 RESULT_SUCCESS = 'success'
 MSG_CANNOT_PARSE_FILENAME = 'Cannot parse filename'
@@ -767,35 +768,38 @@ def run_json_checks(file_path, f, restrict=None):
     return result
 
 
-def process_file(file_path: Path, restrict=None) -> dict:
-    """This function processes the submitted file
-
-    :param Path file_path: A path to a .csv or .jsonl file
-    :return dict: A dictionary of errors found in the file. If there are no errors,
-    then only the error report headers will in the results.
+def process_file(file_path, restrict=None) -> dict:
     """
+    Process a .csv or .jsonl file, from either local disk or GCS.
 
-    run_checks = None
-    if file_path.suffix == '.csv':
+    :param file_path: A Path object (local) or a string (GCS path)
+    :param restrict: Optional restriction logic
+    :return dict: A dictionary of errors found in the file
+    """
+    if isinstance(file_path, Path):
+        file_name = file_path.name
+        suffix = file_path.suffix
+    else:
+        file_name = file_path.split("/")[-1]
+        suffix = Path(file_path).suffix
+
+    if suffix == '.csv':
         run_checks = run_csv_checks
-    elif file_path.suffix == '.jsonl':
+    if suffix == '.jsonl':
         run_checks = run_json_checks
-    elif file_path.suffix == '.json':
-        raise (ValueError(
-            f"JSON Lines file {file_path.name} should have not have extension '.json'. Please rename to '.jsonl'."
-        ))
-    else:
-        raise (
-            ValueError(f'File {file_path.name} is not a csv or jsonl file.'))
+    if suffix == '.json':
+        raise ValueError(
+            f"JSON Lines file {file_name} should not have extension '.json'. Please rename to '.jsonl'."
+        )
 
-    enc = detect_bom_encoding(file_path)
-    if enc is None:
-        with open(file_path, 'r') as f:
+    if is_gcs_path(file_path):
+        with fs.open(file_path, 'r', encoding='utf-8') as f:
             result = run_checks(file_path, f, restrict=restrict)
     else:
-        with open(file_path, 'r', encoding=enc) as f:
+        with file_path.open('r', encoding='utf-8') as f:
             result = run_checks(file_path, f, restrict=restrict)
-    print(f'Finished processing {file_path}\n')
+
+    print(f'Finished processing {file_name}\n')
     return result
 
 
@@ -860,24 +864,45 @@ def get_files(base_path, extensions):
     :return list[str]: List of files found in directory with
     eligible extensions
     """
+
     files = []
-    for ext in extensions:
-        files.extend(Path(base_path).glob(f"*.{ext}"))
+
+    if is_gcs_path(base_path):
+        # Ensure GCS path ends with /
+        base_path = base_path.rstrip("/") + "/"
+        for ext in extensions:
+            pattern = f"{base_path}*.{ext}"
+            matched = fs.glob(pattern)
+            files.extend(matched)
+    else:
+        p = Path(base_path)
+        for ext in extensions:
+            files.extend(p.glob(f"*.{ext}"))
 
     return files
 
 
-def evaluate_submission(d, restrict=None):
-    """Entry point for evaluating all files in a submission
+fs = gcsfs.GCSFileSystem()
 
-    :param str d: Path to the submission directory
-    :return dict: Dictionary of found errors
-    """
-    out_dir = os.path.join(d, 'errors')
-    if not os.path.exists(out_dir):
+def is_gcs_path(path):
+    return str(path).startswith("gs://")
+
+def make_output_path(base_path, filename):
+    if is_gcs_path(base_path):
+        return f"{base_path.rstrip('/')}/{filename}"
+    else:
+        return str(Path(base_path) / filename)
+
+
+def evaluate_submission(d, restrict=None):
+    """Evaluate files in a submission directory (local or GCS)."""
+    out_dir = make_output_path(d, 'errors')
+
+    # Make directory only if local
+    if not is_gcs_path(out_dir) and not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    output_file_name = os.path.join(out_dir, 'results.csv')
+    output_file_name = make_output_path(out_dir, 'results.csv')
     error_map = {}
 
     readable_field_names = [
@@ -887,35 +912,43 @@ def evaluate_submission(d, restrict=None):
     table_names = collections.defaultdict()
 
     for key in HEADER_KEYS + ERROR_KEYS:
-        new_key = get_readable_key(key)
-        table_names[key] = new_key
+        table_names[key] = get_readable_key(key)
 
     file_types = ['csv', 'json', 'jsonl']
     for f in get_files(d, file_types):
-        file_name = f.name
+        file_name = f.name if hasattr(f, 'name') else f
 
         result = process_file(f, restrict=restrict)
         rows = []
         for error in result['errors']:
-            row = []
-            for header_key in HEADER_KEYS:
-                row.append(result.get(header_key))
-            for error_key in ERROR_KEYS:
-                row.append(error.get(error_key))
+            row = [result.get(header_key) for header_key in HEADER_KEYS]
+            row += [error.get(error_key) for error_key in ERROR_KEYS]
             rows.append(row)
 
-        if len(rows) > 0:
+        if rows:
             df_file = pd.DataFrame(rows, columns=readable_field_names)
-            df = df.append(df_file, ignore_index=True)
+            df = pd.concat([df, df_file], ignore_index=True)
 
         error_map[file_name] = result['errors']
-    df.to_csv(output_file_name, index=False, quoting=csv.QUOTE_ALL)
 
-    # changing extension
+    if is_gcs_path(output_file_name):
+        with fs.open(output_file_name, 'w') as f_out:
+            df.to_csv(f_out, index=False, quoting=csv.QUOTE_ALL)
+    else:
+        df.to_csv(output_file_name, index=False, quoting=csv.QUOTE_ALL)
+
     html_output_file_name = output_file_name[:-4] + '.html'
-
     df = df.fillna('')
-    df.to_html(html_output_file_name, index=False)
+
+    html_content = df.to_html(index=False)
+    if is_gcs_path(html_output_file_name):
+        with fs.open(html_output_file_name, 'w') as f_out:
+            f_out.write(html_content)
+    else:
+        with open(html_output_file_name, 'w') as f_out:
+            f_out.write(html_content)
+
+    # If you have a custom HTML styling function, use it
     generate_pretty_html(html_output_file_name)
 
     return error_map
@@ -925,6 +958,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=
         "Evaluate OMOP files for formatting issues before AoU submission.")
+    
+    parser.add_argument(
+        '-c',
+        '--csv_dir',
+        required=True,
+        help=
+        "Path to the files being validated. Must be in the expected format. See README"
+    )
 
     parser.add_argument(
         '-r',
@@ -937,4 +978,4 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    evaluate_submission(settings.csv_dir, restrict=args.restrict)
+    evaluate_submission(args.csv_dir, restrict=args.restrict)

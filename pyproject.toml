@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 version_file = "ftd-omop-validator/_version.py"
 
 [project]
-name = "ftd-omop-validator"
+name = "ftd_omop_validator"
 
 description = "Unified API Interface for ontology search APIs."
 readme = "src/README.md"
