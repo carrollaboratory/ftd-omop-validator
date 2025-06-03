@@ -16,7 +16,7 @@ classifiers = [
 dependencies = ["numpy==1.26.4",
                 "pandas==2.0.3",
                 "cchardet==2.1.7",
-                "gcsfs"]
+                "gcsfs==<2023.10"]
 
 dynamic = ["version"]
 
