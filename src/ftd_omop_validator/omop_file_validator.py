@@ -888,7 +888,8 @@ def get_files(base_path, extensions):
 fs = gcsfs.GCSFileSystem()
 
 def is_gcs_path(path):
-    return isinstance(path, str) and path.startswith("gs://")
+    path_str = str(path)
+    return path_str.startswith("gs://")
 
 def make_output_path(base_path, filename):
     if is_gcs_path(base_path):
