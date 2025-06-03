@@ -16,9 +16,7 @@ classifiers = [
 dependencies = ["numpy==1.26.4",
                 "pandas==2.0.3",
                 "cchardet==2.1.7",
-                "gcsfs<2023.10",
-                "google-cloud-bigquery>=3.10.0",
-                "google-cloud-storage==1.44.0"]
+                "gcsfs<2023.10"]
 
 dynamic = ["version"]
 
