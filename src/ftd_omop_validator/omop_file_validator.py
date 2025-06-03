@@ -1,7 +1,7 @@
 import glob
 import traceback
 
-import settings
+from ftd_omop_validator.settings import *
 import os
 import codecs
 import pandas as pd
