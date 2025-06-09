@@ -906,7 +906,7 @@ def evaluate_submission(d, restrict=None):
     if not is_gcs_path(out_dir) and not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    output_file_name = make_output_path(out_dir, 'results.csv')
+    output_file_name = make_output_path("src/ftd_omop_validator/data/output", 'results.csv')
     error_map = {}
 
     readable_field_names = [
