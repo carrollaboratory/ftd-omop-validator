@@ -1,9 +1,15 @@
 [build-system]
-requires = ["setuptools"] #, "setuptools-scm"]
+requires = ["setuptools>=61.0"] #, "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 #[tool.setuptools_scm]
 version_file = "ftd-omop-validator/_version.py"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"ftd_omop_validator" = ["resources/*.txt"]
 
 [project]
 name = "ftd_omop_validator"
