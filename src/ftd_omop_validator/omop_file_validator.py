@@ -1,8 +1,5 @@
 import glob
 import traceback
-
-from ftd_omop_validator.settings import *
-import os
 import codecs
 import pandas as pd
 import numpy as np
@@ -14,6 +11,12 @@ import re
 from pathlib import Path
 import argparse
 import gcsfs
+
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from ftd_omop_validator.settings import *
 
 RESULT_SUCCESS = 'success'
 MSG_CANNOT_PARSE_FILENAME = 'Cannot parse filename'
