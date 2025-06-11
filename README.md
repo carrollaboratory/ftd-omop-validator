@@ -45,6 +45,12 @@ optional arguments:
 
 ## Terra Development
  1. Use the most recent custom environment when creating the Terra env.
-  -  [DockerHub link](https://hub.docker.com/repository/docker/gutman16/ftd_terra_python/tags)
-  -  A longer creation time may be needed. Expectation <20 minutes.
- 2. Use the pre-built notebook in `resources/omop_validation.ipynb`
+  -  [DockerHub link](https://hub.docker.com/repository/docker/gutman16/ftd_terra_python/tags). A longer creation time may be needed. Expectation <20 minutes.
+ 2. Use the pre-built notebook in `resources/omop_validation.ipynb`, if it doesn't already exist in the Terra Workspace.
+
+
+ ## Editing the custom env
+ 1. Clone down the [repo](https://github.com/carrollaboratory/terra_custom_envs?tab=readme-ov-file)
+ 2. Edit the Dockerfile in the validation dir.
+ 2. Follow the README.md to build the img and push it to your Dockerhub account.
+ 
