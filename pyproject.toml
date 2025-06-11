@@ -19,10 +19,9 @@ readme = "src/README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
-dependencies = ["numpy==1.26.4",
-                "pandas==2.0.3",
-                "cchardet==2.1.7",
-                "gcsfs<2023.10"]
+dependencies = ["pandas==2.0.3",
+                "charset-normalizer"
+                ]
 
 dynamic = ["version"]
 

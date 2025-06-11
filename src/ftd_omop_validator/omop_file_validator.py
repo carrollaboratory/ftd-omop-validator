@@ -2,7 +2,6 @@ import glob
 import traceback
 import codecs
 import pandas as pd
-import numpy as np
 import csv
 import json
 import datetime
@@ -10,7 +9,6 @@ import collections
 import re
 from pathlib import Path
 import argparse
-import gcsfs
 
 import sys
 import os
@@ -795,15 +793,12 @@ def process_file(file_path, restrict=None) -> dict:
             f"JSON Lines file {file_name} should not have extension '.json'. Please rename to '.jsonl'."
         )
 
-    if is_gcs_path(file_path):
-        with fs.open(file_path, 'r', encoding='utf-8') as f:
-            result = run_checks(file_path, f, restrict=restrict)
-    else:
-        if isinstance(file_path, str):
-            file_path = Path(file_path)
 
-        with file_path.open('r', encoding='utf-8') as f:
-            result = run_checks(file_path, f, restrict=restrict)
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+
+    with file_path.open('r', encoding='utf-8') as f:
+        result = run_checks(file_path, f, restrict=restrict)
 
     print(f'Finished processing {file_name}\n')
     return result
@@ -873,43 +868,25 @@ def get_files(base_path, extensions):
 
     files = []
 
-    if is_gcs_path(base_path):
-        # Ensure GCS path ends with /
-        base_path = base_path.rstrip("/") + "/"
-        for ext in extensions:
-            pattern = f"{base_path}*.{ext}"
-            matched = fs.glob(pattern)
-            files.extend(matched)
-    else:
-        p = Path(base_path)
-        for ext in extensions:
-            files.extend(p.glob(f"*.{ext}"))
+
+    p = Path(base_path).resolve()
+    if not p.exists():
+        raise ValueError(f"Directory {p} does not exist")
+    for ext in extensions:
+        files.extend(p.glob(f"*.{ext}"))
 
     return files
 
-
-fs = gcsfs.GCSFileSystem()
-
-def is_gcs_path(path):
-    path_str = str(path)
-    return path_str.startswith("gs://")
-
 def make_output_path(base_path, filename):
-    if is_gcs_path(base_path):
-        return f"{base_path.rstrip('/')}/{filename}"
-    else:
-        return str(Path(base_path) / filename)
-
+    return str(Path(base_path) / filename)
 
 def evaluate_submission(d, restrict=None):
     """Evaluate files in a submission directory (local or GCS)."""
-    out_dir = make_output_path(d, 'errors')
 
-    # Make directory only if local
-    if not is_gcs_path(out_dir) and not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-
-    output_file_name = make_output_path("src/ftd_omop_validator/data/output", 'results.csv')
+    output_abs_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "data/output")
+    )
+    output_file_name = make_output_path(output_abs_path, "results.csv")
     error_map = {}
 
     readable_field_names = [
@@ -923,6 +900,7 @@ def evaluate_submission(d, restrict=None):
 
     file_types = ['csv', 'json', 'jsonl']
     for f in get_files(d, file_types):
+        print(f'{d}')
         file_name = f.name if hasattr(f, 'name') else f
 
         result = process_file(f, restrict=restrict)
@@ -938,22 +916,16 @@ def evaluate_submission(d, restrict=None):
 
         error_map[file_name] = result['errors']
 
-    if is_gcs_path(output_file_name):
-        with fs.open(output_file_name, 'w') as f_out:
-            df.to_csv(f_out, index=False, quoting=csv.QUOTE_ALL)
-    else:
+        print(f"Printing to {output_file_name}")
         df.to_csv(output_file_name, index=False, quoting=csv.QUOTE_ALL)
 
     html_output_file_name = output_file_name[:-4] + '.html'
     df = df.fillna('')
 
     html_content = df.to_html(index=False)
-    if is_gcs_path(html_output_file_name):
-        with fs.open(html_output_file_name, 'w') as f_out:
-            f_out.write(html_content)
-    else:
-        with open(html_output_file_name, 'w') as f_out:
-            f_out.write(html_content)
+
+    with open(html_output_file_name, 'w') as f_out:
+        f_out.write(html_content)
 
     # If you have a custom HTML styling function, use it
     generate_pretty_html(html_output_file_name)
@@ -962,10 +934,12 @@ def evaluate_submission(d, restrict=None):
 
 
 if __name__ == '__main__':
+    env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+
     parser = argparse.ArgumentParser(
         description=
         "Evaluate OMOP files for formatting issues before AoU submission.")
-    
+
     parser.add_argument(
         '-c',
         '--csv_dir',
@@ -985,4 +959,6 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    evaluate_submission(args.csv_dir, restrict=args.restrict)
+    full_src_path = os.path.abspath(os.path.join(env_path, args.csv_dir))
+
+    evaluate_submission(full_src_path, restrict=args.restrict)
