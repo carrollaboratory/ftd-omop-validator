@@ -99,7 +99,7 @@ def get_cdm_table_columns(table_name):
     :return dict: Deserialized dictionary of the table columns
     """
     # allow files to be found regardless of CaSe
-    file = os.path.join(cdm_metadata_path,
+    file = os.path.join(cdm_metadata_path_53,
                         table_name.lower() + '.json')
     if os.path.isfile(file):
         with open(file, 'r', encoding='utf-8') as f:

@@ -1,19 +1,22 @@
 # AoU EHR Submission Validator
 
-Validate submissions for the All of Us EHR data 
+Validate submissions for the FTD omop data 
 
-## Requirements
+## Local Development 
+**If running in Terra**, use the custom environment, and pre-built notebook in `resources/omop_validation.ipynb`
 
- * Python >=3.6 (download from [here](https://www.python.org/downloads/) and install)
+### Requirements 
+
+ * Python >=3.9 (download from [here](https://www.python.org/downloads/) and install)
  * pip (download [get-pip.py](https://bootstrap.pypa.io/get-pip.py) and run `python get-pip.py`)
 
-## Installation / Configuration
+### Installation / Configuration
 
  * Install requirements by running
  
         pip install -r requirements.txt
  
-## Running
+### Running
  * Update `_settings.py` and rename it to `settings.py`
  * Create a folder and place all the EHR submission files to be validated into it
  * Set the "csv_dir" parameter in `settings.py` to the full path of the folder created above
@@ -21,7 +24,7 @@ Validate submissions for the All of Us EHR data
  * Execute the following at the command line:
 
 ```bash
-python omop_file_validator.py [-h] [-r RESTRICT]
+python omop_file_validator.py [-h] [-r RESTRICT] [-c CSV_DIR]
 
 Evaluate OMOP files for formatting issues before AoU submission.
 
@@ -30,6 +33,9 @@ optional arguments:
   -r RESTRICT, --restrict RESTRICT
                         Number of rows to restrict for validation per file. e.g. --restrict 1000 for only validating
                         the first 1000 lines
+  -c CSV_DIR, --restrict CSV_DIR
+                        Relative filepath to the stored data to be validated e.g. --csv_dir uploads/omop_test
+                        Relative to the root dir e.g. If your data is in this dir `ftd-omop-validator/src/ftd_omop_validator/data/input`. -c would be `src/ftd_omop_validator/data/input'.
 ```
 ## Validation logic
  * File names must follow naming convention `{table}.csv`

@@ -19,7 +19,8 @@ readme = "src/README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
-dependencies = ["pandas==2.0.3",
+dependencies = ["numpy>=1.21,<2.0"
+                "pandas==2.0.3",
                 "charset-normalizer"
                 ]
 
