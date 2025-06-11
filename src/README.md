@@ -3,7 +3,6 @@
 Validate submissions for the FTD omop data 
 
 ## Local Development 
-**If running in Terra**, use the custom environment, and pre-built notebook in `resources/omop_validation.ipynb`
 
 ### Requirements 
 
@@ -42,3 +41,10 @@ optional arguments:
      * `table` an OMOP CDM table listed in [resources/omop](resources/omop)
  * Files must be in CSV format (comma-delimited) as specified by [rfc4180](https://tools.ietf.org/html/rfc4180)
  * Column names and types must follow the conventions in [resources/omop](resources/omop)
+
+
+## Terra Development
+ 1. Use the most recent custom environment when creating the Terra env.
+  -  [DockerHub link](https://hub.docker.com/repository/docker/gutman16/ftd_terra_python/tags)
+  -  A longer creation time may be needed. Expectation <20 minutes.
+ 2. Use the pre-built notebook in `resources/omop_validation.ipynb`
