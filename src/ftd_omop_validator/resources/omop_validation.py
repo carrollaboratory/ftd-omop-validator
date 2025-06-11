@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[8]:
+# In[1]:
 
 
 # Requirements
@@ -11,7 +11,7 @@ collection_name = "omop_test_synthea"
 files = ['observation.tsv', 'conditions.tsv']
 
 
-# In[45]:
+# In[2]:
 
 
 import subprocess
@@ -40,10 +40,10 @@ fov = "/home/jupyter/ftd-omop-validator/src/ftd_omop_validator"
 script_loc = "ftd-omop-validator/src/ftd_omop_validator/omop_file_validator.py"
 csv_dir = f"/home/jupyter/uploads/{collection_name}"
 results = "/home/jupyter/ftd-omop-validator/src/ftd_omop_validator/data/output/results.csv"
-ori_results_html = "/home/jupyter/ftd-omop-validator/src/ftd_omop_validator/data/output/results.html"
+results_html = "/home/jupyter/ftd-omop-validator/src/ftd_omop_validator/data/output/results.html"
 
 
-# In[33]:
+# In[3]:
 
 
 # Copy all files from the workspace bucket to the notebook disk
@@ -51,29 +51,38 @@ get_ipython().system('mkdir -p {csv_dir}')
 get_ipython().system('gcloud storage cp --recursive $bucket/* {base}')
 
 
-# In[34]:
+# In[4]:
 
 
 # Optional: Sanity check - Views the tables listed in the `files` variable
 print('Available files')
-get_ipython().system('ls uploads/omop_test_synthea/')
+get_ipython().system('ls {csv_dir}')
+
 
 print('View files')
 for table in files:
-    view = f"uploads/{collection_name}/{table}"
+    view = f"{csv_dir}/{table}"
     e = pandas.read_csv(view)
     print(table)
     print(e.head(2))
 
 
-# In[36]:
+# In[5]:
 
 
 subprocess.run([py39, script_loc, "-c", csv_dir], cwd=base)
 
 
-# In[47]:
+# In[6]:
 
 
 pandas.read_csv(results)
+
+print(f'To see the html version, click on the jupyter logo at the top of this notebook and navigate here:\n"{results_html}"')
+
+
+# In[ ]:
+
+
+
 
