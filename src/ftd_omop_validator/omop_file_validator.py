@@ -84,6 +84,8 @@ def read_file_as_dataframe(f,
         df = pd.read_json(f, lines=True, nrows=restrict, **kwargs)
     elif ext == 'csv':
         df = pd.read_csv(f, nrows=restrict, **kwargs)
+    elif ext == 'tsv':
+        df = pd.read_csv(f, sep='\t', nrows=restrict, **kwargs)
     else:
         df = pd.read_csv(f, nrows=restrict, **kwargs)
 
@@ -786,6 +788,8 @@ def process_file(file_path, restrict=None) -> dict:
 
     if suffix == '.csv':
         run_checks = run_csv_checks
+    if suffix == '.tsv':
+        run_checks = run_csv_checks
     if suffix == '.jsonl':
         run_checks = run_json_checks
     if suffix == '.json':
@@ -898,7 +902,7 @@ def evaluate_submission(d, restrict=None):
     for key in HEADER_KEYS + ERROR_KEYS:
         table_names[key] = get_readable_key(key)
 
-    file_types = ['csv', 'json', 'jsonl']
+    file_types = ['csv', 'tsv', 'json', 'jsonl']
     for f in get_files(d, file_types):
         print(f'{d}')
         file_name = f.name if hasattr(f, 'name') else f
