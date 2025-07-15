@@ -917,6 +917,8 @@ def evaluate_submission(d, restrict=None):
         if rows:
             df_file = pd.DataFrame(rows, columns=readable_field_names)
             df = pd.concat([df, df_file], ignore_index=True)
+        else:
+            print(f"{f.name} no OMOP validation errors")
 
         error_map[file_name] = result['errors']
 
