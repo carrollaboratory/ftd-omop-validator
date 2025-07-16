@@ -567,7 +567,7 @@ def run_csv_checks(file_path, f, restrict=None):
                                 fmts = VALID_TIMESTAMP_FORMAT
                                 err_msg = MSG_INVALID_TIMESTAMP
 
-                            for idx, value in df[submission_column].iteritems(
+                            for idx, value in df[submission_column].items(
                             ):
                                 if not any(
                                         list(
